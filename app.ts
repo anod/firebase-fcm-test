@@ -1,24 +1,28 @@
 import { google } from 'googleapis';
 import * as https from 'https';
 
-const firebaseProject = "";
+const account = require('./service-account.json');
+
 const deviceToken = "";
 const message = {
     "message": {
-        "token": deviceToken,
+        "token": deviceToken.replace('%3', ':'),
         "data": {
-            "title": "Notification title",
-            "body": "Notification body",
+            "title": "New review",
+            "body": "Soooo complicated to get started.",
             'type': 'review',
-            'ext_id': '692885364'
+            'ext_id': 'com.Slack',
+            "review_id": "gp:AOqpTOG2HTM1uLxzN8ZI8FiquT-bjK4zNEdCw8LddwguJa2PMt_6wBuLfy-G-VPP1v4A08yxctgC7gDFO5DF98E",
         },
         "apns": {
             "payload": {
-                "alert": {
-                    "title": "Notification title",
-                    "body": "Notification body"
-                },
-                "category": "review"
+                "aps": {
+                    "alert": {
+                        "title": "New review",
+                        "body": "Soooo complicated to get started."
+                    },
+                    "category": "review"
+                }
             }
         }
     }
@@ -26,11 +30,10 @@ const message = {
 
 function authorize(): Promise<string> {
     return new Promise(function (resolve, reject) {
-        const key = require('./service-account.json');
         const jwtClient = new google.auth.JWT(
-            key.client_email,
+            account.client_email,
             null,
-            key.private_key,
+            account.private_key,
             [
                 'https://www.googleapis.com/auth/firebase.messaging'
             ],
@@ -52,7 +55,7 @@ authorize().then(token => {
     const options: https.RequestOptions = {
         method: 'POST',
         hostname: 'fcm.googleapis.com',
-        path: `/v1/projects/${firebaseProject}/messages:send`,
+        path: `/v1/projects/${account.project_id}/messages:send`,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
